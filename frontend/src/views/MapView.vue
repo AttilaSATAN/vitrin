@@ -37,6 +37,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Map as MaplibreMap, Marker, Popup } from 'maplibre-gl'
 import { Client } from '@stomp/stompjs'
+import { fetchFlights, getWsBrokerUrl } from '../api'
 
 // ── Refs 
 const mapEl = ref(null)
@@ -85,20 +86,10 @@ function initMap() {
 
 /**
  * Fetches existing flight records from the REST API and renders them on the map.
- * Uses HTTP Basic authentication (admin / password).
  */
 async function loadFlights() {
   try {
-    const response = await fetch('/api/flights', {
-      headers: {
-        Authorization: 'Basic ' + btoa('admin:password')
-      }
-    })
-    if (!response.ok) {
-      console.error('Failed to load flights:', response.statusText)
-      return
-    }
-    const data = await response.json()
+    const data = await fetchFlights()
     data.forEach(updateFlight)
   } catch (err) {
     console.error('Error loading flights:', err)
@@ -200,7 +191,7 @@ function formatCoords(flight) {
  */
 function initWebSocket() {
   stompClient = new Client({
-    brokerURL: 'ws://localhost:8080/ws-native',
+    brokerURL: getWsBrokerUrl(),
     reconnectDelay: 5000,
     onConnect: () => {
       isConnected.value = true

@@ -13,6 +13,10 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      '/ws-native': {
+        target: 'ws://localhost:8080',
+        ws: true
       }
     }
   }
