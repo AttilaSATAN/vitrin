@@ -38,12 +38,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Map as MaplibreMap, Marker, Popup } from 'maplibre-gl'
 import { Client } from '@stomp/stompjs'
 
-// ── Refs ──────────────────────────────────────────────────────────────────────
+// ── Refs 
 const mapEl = ref(null)
 const isConnected = ref(false)
-const flights = ref([])
+const flights = ref([]) // Array for storing flight data objects from the API and WebSocket
 
-// ── Internals ─────────────────────────────────────────────────────────────────
+// ── Internals 
 /** @type {MaplibreMap|null} */
 let map = null
 /** @type {Client|null} */
@@ -51,7 +51,10 @@ let stompClient = null
 /** @type {Map<string, Marker>} Flight-number → MapLibre Marker */
 const flightMarkers = new Map()
 
-// ── Map initialisation ────────────────────────────────────────────────────────
+/** @type {Map<string, Marker[]>} Flight-number → list of trail dot Markers */
+const trailMarkers = new Map()
+
+// ── Map initialisation 
 
 /**
  * Initialises the MapLibre map using OpenStreetMap raster tiles,
@@ -78,7 +81,7 @@ function initMap() {
   })
 }
 
-// ── REST data loading ─────────────────────────────────────────────────────────
+// ── REST data loading 
 
 /**
  * Fetches existing flight records from the REST API and renders them on the map.
@@ -102,7 +105,7 @@ async function loadFlights() {
   }
 }
 
-// ── Flight data helpers ───────────────────────────────────────────────────────
+// ── Flight data helpers 
 
 /**
  * Adds or updates a flight entry in the flights list and its map marker.
@@ -122,14 +125,38 @@ function updateFlight(flightData) {
 }
 
 /**
+ * Places a small blue dot at the given coordinates to mark a previous flight position.
+ *
+ * @param {string} flightNumber - The flight number the trail belongs to
+ * @param {number} lng - Longitude of the previous position
+ * @param {number} lat - Latitude of the previous position
+ */
+function addTrailDot(flightNumber, lng, lat) {
+  const el = document.createElement('div')
+  el.style.cssText =
+    'width:8px;height:8px;border-radius:50%;background:#2979ff;opacity:0.7;border:1px solid #fff;pointer-events:none;'
+  const dot = new Marker({ element: el })
+    .setLngLat([lng, lat])
+    .addTo(map)
+  if (!trailMarkers.has(flightNumber)) {
+    trailMarkers.set(flightNumber, [])
+  }
+  trailMarkers.get(flightNumber).push(dot)
+}
+
+/**
  * Creates or repositions a MapLibre Marker for the given flight.
+ * When an existing marker is moved, a trail dot is placed at the previous position.
  *
  * @param {object} flight - The flight data containing longitude, latitude and flightNumber
  */
 function updateMarker(flight) {
   const key = flight.flightNumber
   if (flightMarkers.has(key)) {
-    flightMarkers.get(key).setLngLat([flight.longitude, flight.latitude])
+    const existing = flightMarkers.get(key)
+    const prev = existing.getLngLat()
+    addTrailDot(key, prev.lng, prev.lat)
+    existing.setLngLat([flight.longitude, flight.latitude])
   } else {
     const popup = new Popup({ offset: 25 }).setHTML(
       `<strong>${flight.flightNumber}</strong><br>
@@ -165,7 +192,7 @@ function formatCoords(flight) {
   return `${flight.latitude?.toFixed(3)}°N, ${flight.longitude?.toFixed(3)}°E`
 }
 
-// ── WebSocket ─────────────────────────────────────────────────────────────────
+// ── WebSocket 
 
 /**
  * Initialises and activates the STOMP WebSocket client.
@@ -193,7 +220,7 @@ function initWebSocket() {
   stompClient.activate()
 }
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
+// ── Lifecycle 
 
 onMounted(() => {
   initMap()
