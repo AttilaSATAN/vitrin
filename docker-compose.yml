@@ -1,0 +1,51 @@
+services:
+
+  tusas-postgres:
+    build: ./postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    networks:
+      - tusas-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  tusas-backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.compose
+    depends_on:
+      tusas-postgres:
+        condition: service_healthy
+    networks:
+      - tusas-network
+
+  tusas-frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    networks:
+      - tusas-network
+
+  tusas-producer:
+    build: ./producer
+    # The producer's loadEnv() resolves /app/.env at startup;
+    # mount .env.compose there so it can read API_URL.
+    volumes:
+      - ./.env.compose:/app/.env
+    depends_on:
+      - tusas-backend
+    networks:
+      - tusas-network
+
+networks:
+  tusas-network:
+    driver: bridge

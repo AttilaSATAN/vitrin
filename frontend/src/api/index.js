@@ -1,6 +1,6 @@
 /**
  * Base URL for all REST API calls.
- * Reads VITE_API_URL from the environment (set in .env / .env.docker).
+ * Reads VITE_API_URL from the environment (set in .env / .env.compose).
  * Falls back to an empty string so relative paths work when the value is unset.
  *
  * @type {string}
@@ -16,7 +16,7 @@ export const API_BASE = import.meta.env.VITE_API_URL || ''
  */
 export const WS_BASE = API_BASE
   ? API_BASE.replace(/^http/, 'ws')
-  : `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`
+  : `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}:8080`
 
 const AUTH_HEADER = 'Basic ' + btoa('admin:password')
 
