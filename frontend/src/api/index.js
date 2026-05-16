@@ -6,7 +6,7 @@
  * @type {string}
  */
 export const API_BASE = import.meta.env.VITE_API_URL || ''
-
+console.log(API_BASE)
 /**
  * Base URL for WebSocket (STOMP) connections.
  * Derived from API_BASE by replacing the http(s) scheme with ws(s).
@@ -16,7 +16,7 @@ export const API_BASE = import.meta.env.VITE_API_URL || ''
  */
 export const WS_BASE = API_BASE
   ? API_BASE.replace(/^http/, 'ws')
-  : `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}:8080`
+  : `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}`
 
 const AUTH_HEADER = 'Basic ' + btoa('admin:password')
 

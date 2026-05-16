@@ -29,9 +29,14 @@ services:
       - tusas-network
 
   tusas-frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+    env_file:
+      - .env.compose
     ports:
       - "80:80"
+    depends_on:
+      - tusas-backend
     networks:
       - tusas-network
 

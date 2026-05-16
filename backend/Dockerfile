@@ -10,7 +10,7 @@ COPY src ./src
 RUN mvn package -DskipTests -B
 
 # ---- Runtime stage ----
-FROM eclipse-temurin:25-jre AS tusas-backend
+FROM eclipse-temurin:25-jre AS runtime
 
 WORKDIR /app
 
