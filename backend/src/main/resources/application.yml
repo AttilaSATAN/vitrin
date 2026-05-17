@@ -23,6 +23,13 @@ spring:
 server:
   port: 8080
 
+producer:
+  # Container image used when spawning a producer pod via POST /api/producer/spawn.
+  # Override this with the fully-qualified registry path in production.
+  image: tusas-vitrin-producer:latest
+  # Kubernetes namespace in which producer pods are created.
+  namespace: tusas-vitrin
+
 logging:
   level:
     com.tusas.vitrin: DEBUG

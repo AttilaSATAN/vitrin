@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tusas-backend-sa
+  namespace: tusas-vitrin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-creator
+  namespace: tusas-vitrin
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-creator-binding
+  namespace: tusas-vitrin
+subjects:
+  - kind: ServiceAccount
+    name: tusas-backend-sa
+    namespace: tusas-vitrin
+roleRef:
+  kind: Role
+  name: pod-creator
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tusas-frontend
+  namespace: tusas-vitrin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tusas-frontend
+  template:
+    metadata:
+      labels:
+        app: tusas-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: tusas-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10

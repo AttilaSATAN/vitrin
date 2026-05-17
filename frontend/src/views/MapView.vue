@@ -29,7 +29,24 @@
     </aside>
 
     <!-- Map -->
-    <div ref="mapEl" class="map-container"></div>
+    <div ref="mapEl" class="map-container">
+      <!-- Spawn producer button — bottom-left corner of the map -->
+      <div class="spawn-wrap">
+        <button
+          class="spawn-btn"
+          :class="{ 'spawn-btn--loading': spawning }"
+          :disabled="spawning"
+          @click="handleSpawnProducer"
+        >
+          {{ spawning ? 'Spawning…' : '▶ Spawn Producer' }}
+        </button>
+        <transition name="fade">
+          <span v-if="spawnMessage" :class="['spawn-msg', spawnMsgType]">
+            {{ spawnMessage }}
+          </span>
+        </transition>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -37,12 +54,15 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Map as MaplibreMap, Marker, Popup } from 'maplibre-gl'
 import { Client } from '@stomp/stompjs'
-import { fetchFlights, getWsBrokerUrl } from '../api'
+import { fetchFlights, getWsBrokerUrl, spawnProducer } from '../api'
 
 // ── Refs 
 const mapEl = ref(null)
 const isConnected = ref(false)
 const flights = ref([]) // Array for storing flight data objects from the API and WebSocket
+const spawning = ref(false)
+const spawnMessage = ref('')
+const spawnMsgType = ref('success')
 
 // ── Internals 
 /** @type {MaplibreMap|null} */
@@ -211,6 +231,32 @@ function initWebSocket() {
   stompClient.activate()
 }
 
+// ── Spawn producer 
+
+/**
+ * Calls the backend spawn endpoint and shows a transient status message.
+ */
+async function handleSpawnProducer() {
+  spawning.value = true
+  spawnMessage.value = ''
+  try {
+    const result = await spawnProducer()
+    if (result.status === 'CREATED') {
+      spawnMsgType.value = 'success'
+      spawnMessage.value = `Pod created: ${result.podName}`
+    } else {
+      spawnMsgType.value = 'error'
+      spawnMessage.value = result.message
+    }
+  } catch (err) {
+    spawnMsgType.value = 'error'
+    spawnMessage.value = 'Request failed'
+  } finally {
+    spawning.value = false
+    setTimeout(() => { spawnMessage.value = '' }, 4000)
+  }
+}
+
 // ── Lifecycle 
 
 onMounted(() => {
@@ -340,5 +386,68 @@ onUnmounted(() => {
 .map-container {
   flex: 1;
   min-width: 0;
+  position: relative;
+}
+
+/* ── Spawn button ── */
+.spawn-wrap {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.spawn-btn {
+  background: #1565c0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.spawn-btn:hover:not(:disabled) {
+  background: #1976d2;
+}
+
+.spawn-btn--loading,
+.spawn-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spawn-msg {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.spawn-msg.success {
+  background: #1b5e20;
+  color: #a5d6a7;
+}
+
+.spawn-msg.error {
+  background: #4a1212;
+  color: #ef9a9a;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

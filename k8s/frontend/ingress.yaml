@@ -1,0 +1,39 @@
+# The Ingress controller handles all routing:
+#   /api/*      → tusas-backend (REST)
+#   /ws-native  → tusas-backend (WebSocket/STOMP)
+#   /*          → tusas-frontend (Vue.js SPA)
+# ingress-nginx passes WebSocket Upgrade headers automatically.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tusas-ingress
+  namespace: tusas-vitrin
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: tusas-backend
+                port:
+                  number: 8080
+          - path: /ws-native
+            pathType: Prefix
+            backend:
+              service:
+                name: tusas-backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: tusas-frontend
+                port:
+                  number: 80

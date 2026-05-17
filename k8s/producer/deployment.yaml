@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tusas-producer
+  namespace: tusas-vitrin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tusas-producer
+  template:
+    metadata:
+      labels:
+        app: tusas-producer
+    spec:
+      containers:
+        - name: producer
+          image: tusas-producer:latest
+          imagePullPolicy: IfNotPresent
+          # Mount the ConfigMap as /app/.env — the path the Go binary resolves
+          # via runtime.Caller(0) at compile time (/app/producer/../.env).
+          volumeMounts:
+            - name: env-file
+              mountPath: /app/.env
+              subPath: .env
+      volumes:
+        - name: env-file
+          configMap:
+            name: tusas-producer-env

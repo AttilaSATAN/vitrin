@@ -1,0 +1,10 @@
+# The producer binary reads /app/.env at startup via godotenv.
+# This ConfigMap is mounted as that file so it can find API_URL.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tusas-producer-env
+  namespace: tusas-vitrin
+data:
+  .env: |
+    API_URL=http://tusas-backend:8080

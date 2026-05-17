@@ -41,10 +41,12 @@ func rootEnvPath() string {
 }
 
 // loadEnv loads variables from the root .env file into the process environment.
+// When running inside a Kubernetes pod the file will not be present; in that
+// case the function logs a warning and returns — env vars are injected by K8s.
 func loadEnv() {
 	envPath := rootEnvPath()
 	if err := godotenv.Load(envPath); err != nil {
-		log.Fatalf("Loading .env from %s: %v", envPath, err)
+		log.Printf("Warning: could not load .env from %s: %v (using environment variables)", envPath, err)
 	}
 }
 

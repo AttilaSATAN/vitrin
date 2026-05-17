@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tusas-backend
+  namespace: tusas-vitrin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tusas-backend
+  template:
+    metadata:
+      labels:
+        app: tusas-backend
+    spec:
+      serviceAccountName: tusas-backend-sa
+      containers:
+        - name: backend
+          image: tusas-backend:latest
+          # Use IfNotPresent so a locally loaded image is used without pulling.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRES_HOST
+              value: tusas-postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tusas-postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tusas-postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: tusas-postgres-secret
+                  key: POSTGRES_DB
+            # API_URL is forwarded to spawned producer pods so they can POST flight data.
+            - name: API_URL
+              value: http://tusas-backend:8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            # Spring Boot + Hibernate DDL update needs time on first start.
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15

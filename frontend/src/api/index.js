@@ -44,3 +44,18 @@ export async function fetchFlights() {
 export function getWsBrokerUrl() {
   return `${WS_BASE}/ws-native`
 }
+
+/**
+ * Sends a POST request to spawn a new producer pod in the Kubernetes cluster.
+ * Returns the parsed response body on success (201) or failure (e.g. 503).
+ *
+ * @returns {Promise<{podName: string|null, status: string, message: string}>}
+ * @throws {Error} When the network request itself fails.
+ */
+export async function spawnProducer() {
+  const response = await fetch(`${API_BASE}/api/producer/spawn`, {
+    method: 'POST',
+    headers: { Authorization: AUTH_HEADER }
+  })
+  return response.json()
+}
