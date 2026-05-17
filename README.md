@@ -54,6 +54,8 @@ Backend'de Spring Boot, Data JPA, starter websocket, postgres, io.kubernetes tem
 
 Genel hatları ile proje mimarisi şu şekildedir:
 
+
+```
 com.tusas.vitrin/
 ├── TusasVitrinApplication.java
 ├── domain/model/
@@ -72,6 +74,7 @@ com.tusas.vitrin/
     └── config/
         ├── SecurityConfig.java    ← HTTP Basic, CORS
         └── WebSocketConfig.java  ← /ws-native + /ws (SockJS)
+```
 
 **Eksikler:** 
 - Bir message broker implementasyonu, horizontal scale için gereklidir. Şu anda ws bağlantıları tek bir sunucu instance'ının raminde durmaktadır. 
