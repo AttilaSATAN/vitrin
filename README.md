@@ -1,5 +1,7 @@
 # Canlı Uçuş Bilgisi İzleme
 
+## Bir Spring-Boot / Golang / Vue / Postgres / WebSocket / Kubernetes kullanım örneği.
+
 Farklı kaynaklardan gelen uçuş datası (flightData) Spring Boot backend'i ile postgres'e kaydedilirken websocket /(STOMP subprotokolü) ile vue frontend yeni uçuş bilgisinden haberdar edilmektedir. Uçuş verileri go ile yazılmış küçük bir uygulama ile simüle edilmektedir. 
 
 Sistem 3 temel elementten oluşmaktadır. `backend`, `frontend` ve `producer`. 
